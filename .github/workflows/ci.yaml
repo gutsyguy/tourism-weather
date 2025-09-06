@@ -74,3 +74,12 @@ jobs:
       - name: Run frontend tests
         working-directory: frontend
         run: npm test --if-present
+
+  deploy-backend:
+    needs: [backend] # run only if backend tests pass
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deployment
+        run: curl "$RENDER_DEPLOY_HOOK_URL"
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}
