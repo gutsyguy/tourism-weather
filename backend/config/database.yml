@@ -1,7 +1,18 @@
-production:
-  <<: *default
+default: &default
   adapter: postgresql
   encoding: unicode
-  url: <%= ENV["DATABASE_URL"] %>
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  sslmode: require
+
+development:
+  <<: *default
+  database: tourism_weather_development
+
+test:
+  <<: *default
+  database: tourism_weather_test
+
+production:
+  <<: *default
+  database: tourism_weather_production
+  username: <%= ENV['DB_USERNAME'] %>
+  password: <%= ENV['DB_PASSWORD'] %>
