@@ -18,3 +18,7 @@ production:
 # Action Cable
 cable:
   <<: *default
+
+# Active Job / Async queue database
+queue:
+  <<: *default
