@@ -12,6 +12,3 @@ test:
 
 production:
   <<: *default
-
-cable:
-  <<: *production
