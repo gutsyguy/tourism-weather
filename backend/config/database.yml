@@ -22,3 +22,9 @@ cable:
 # Active Job / Async queue database
 queue:
   <<: *default
+
+cache:
+  <<: *default
+
+primary:
+  <<: *default
