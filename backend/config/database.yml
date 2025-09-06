@@ -1,13 +1,7 @@
-default: &default
+production:
+  <<: *default
   adapter: postgresql
   encoding: unicode
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   url: <%= ENV["DATABASE_URL"] %>
-
-development:
-  <<: *default
-  database: backend_development
-
-test:
-  <<: *default
-  database: backend_test
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  sslmode: require
