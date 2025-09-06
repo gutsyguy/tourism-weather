@@ -1,14 +1,30 @@
+# config/database.yml
+
+# Default settings
 default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  url: <%= ENV['DATABASE_URL'] %>
+  url: <%= ENV['DATABASE_URL'] if ENV['DATABASE_URL'].present? %>
 
+# Development database
 development:
   <<: *default
+  database: tourism_weather_development
 
+# Test database
 test:
   <<: *default
+  database: <%= ENV['TEST_DATABASE_URL'] || 'tourism_weather_test' %>
 
+# Production database
 production:
   <<: *default
+  # For Render/Supabase, DATABASE_URL is used automatically
+
+# Action Cable database (optional)
+# Only define it if DATABASE_URL exists, to avoid CI errors
+<% if ENV['DATABASE_URL'].present? %>
+cable:
+  <<: *production
+<% end %>
