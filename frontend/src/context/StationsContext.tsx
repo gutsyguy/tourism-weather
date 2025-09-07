@@ -26,16 +26,15 @@ export const StationsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (stations) return; // already fetched
+    const url = process.env.NEXT_PUBLIC_API_URL;
     const fetchStations = async () => {
       try {
-        const res = await fetch(
-          "https://tourism-weather-production.up.railway.app/api/station"
-        );
+        const res = await fetch(`${url}/api/station`);
         if (!res.ok) throw new Error(`Response status: ${res.status}`);
         const result = await res.json();
         setStations(result);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError((err as Error).message);
       } finally {
         setLoading(false);
       }
