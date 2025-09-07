@@ -1,0 +1,17 @@
+{
+    "services": {
+      "backend": {
+        "build": {
+          "command": "bundle install"
+        },
+        "start": {
+          "command": "bin/rails server -b 0.0.0.0 -p $PORT"
+        },
+        "watch": {
+          "command": "bin/rails server -b 0.0.0.0 -p $PORT"
+        },
+        "root": "backend"
+      }
+    }
+  }
+  
