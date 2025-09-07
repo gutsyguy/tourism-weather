@@ -21,13 +21,22 @@ class Api::StationControllerTest < ActionDispatch::IntegrationTest
       body: mock_data.to_json
     )
 
-    Net::HTTP.stub :get_response, fake_response do
-      get "/api/station"
+    mock = Minitest::Mock.new
+    mock.expect :call, fake_response, [URI("https://sfc.windbornesystems.com/stations")]
 
-      assert_response :success
-      body = JSON.parse(response.body)
-      assert_equal 1, body["data"].length
-      assert_equal "EHAK", body["data"].first["station_id"]
-    end
+    Net::HTTP.singleton_class.send(:alias_method, :real_get_response, :get_response)
+    Net::HTTP.define_singleton_method(:get_response, &mock.method(:call))
+
+    get "/api/station"
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal 1, body["data"].length
+    assert_equal "EHAK", body["data"].first["station_id"]
+
+    mock.verify
+  ensure
+    # restore original method so other tests aren’t broken
+    Net::HTTP.singleton_class.send(:alias_method, :get_response, :real_get_response)
   end
 end

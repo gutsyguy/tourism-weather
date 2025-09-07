@@ -18,15 +18,26 @@ class Api::WeatherObservationControllerTest < ActionDispatch::IntegrationTest
       body: mock_data.to_json
     )
 
-    Net::HTTP.stub :get_response, fake_response do
-      get "/api/stations/EHAK/weather"
+    uri = URI("https://sfc.windbornesystems.com/historical_weather?station=EHAK")
+    mock = Minitest::Mock.new
+    mock.expect :call, fake_response, [uri]
 
-      assert_response :success
-      body = JSON.parse(response.body)
-      assert_equal "EHAK", body["station"]
-      assert_equal 1, body["points"].length
-      assert_equal 1, body["corrupted_records"]
-    end
+    # swap out Net::HTTP.get_response temporarily
+    Net::HTTP.singleton_class.send(:alias_method, :real_get_response, :get_response)
+    Net::HTTP.define_singleton_method(:get_response, &mock.method(:call))
+
+    get "/api/stations/EHAK/weather"
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "EHAK", body["station"]
+    assert_equal 1, body["points"].length  # one valid, one filtered
+    assert_equal 1, body["corrupted_records"]
+
+    mock.verify
+  ensure
+    # restore Net::HTTP.get_response so other tests are unaffected
+    Net::HTTP.singleton_class.send(:alias_method, :get_response, :real_get_response)
   end
 
   test "returns error if station param is missing" do
