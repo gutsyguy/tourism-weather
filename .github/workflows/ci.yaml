@@ -2,10 +2,15 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
+    paths:
+      - "backend/**"
+      - ".github/workflows/ci.yml"
   pull_request:
-    branches: [main]
-
+    branches: [main, dev]
+    paths:
+      - "backend/**"
+      - ".github/workflows/ci.yml"
 jobs:
   backend:
     runs-on: ubuntu-latest
@@ -74,3 +79,21 @@ jobs:
       - name: Run frontend tests
         working-directory: frontend
         run: npm test --if-present
+        
+  deploy-backend:
+    needs: [backend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: curl -sSL https://railway.app/install.sh | sh
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway login --apiKey $RAILWAY_TOKEN
+          cd backend
+          railway up --detach

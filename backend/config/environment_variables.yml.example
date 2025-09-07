@@ -1,0 +1,20 @@
+# Environment variables configuration example
+# Copy this file to environment_variables.yml and fill in your actual values
+
+development:
+  GOOGLE_PLACES_URL: "https://places.googleapis.com"
+  X_GOOG-FIELDMASK: "places.displayName,places.formattedAddress,places.priceLevel"
+  GOOGLE_PLACES_API_KEY: "your_google_places_api_key_here"
+  WINDBORNE_API: "https://sfc.windbornesystems.com"
+
+test:
+  GOOGLE_PLACES_URL: "https://places.googleapis.com"
+  X_GOOG-FIELDMASK: "places.displayName,places.formattedAddress,places.priceLevel"
+  GOOGLE_PLACES_API_KEY: "test_api_key_for_testing"
+  WINDBORNE_API: "https://sfc.windbornesystems.com"
+
+production:
+  GOOGLE_PLACES_URL: "https://places.googleapis.com"
+  X_GOOG-FIELDMASK: "places.displayName,places.formattedAddress,places.priceLevel"
+  GOOGLE_PLACES_API_KEY: "your_production_google_places_api_key"
+  WINDBORNE_API: "https://sfc.windbornesystems.com"

@@ -2,12 +2,29 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  url: <%= ENV["DATABASE_URL"] %>
+  url: <%= ENV['DATABASE_URL'] if ENV['DATABASE_URL'].present? %>
 
 development:
   <<: *default
-  database: backend_development
+  database: tourism_weather_development
 
 test:
   <<: *default
-  database: backend_test
+  database: <%= ENV['DATABASE_URL'] || 'tourism_weather_test' %>
+
+production:
+  <<: *default
+
+# Action Cable
+cable:
+  <<: *default
+
+# Active Job / Async queue database
+queue:
+  <<: *default
+
+cache:
+  <<: *default
+
+primary:
+  <<: *default
