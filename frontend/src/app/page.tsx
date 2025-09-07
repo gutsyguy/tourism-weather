@@ -1,13 +1,13 @@
 // app/page.tsx
-import { MapProvider } from "@/context/MapContext";
+import { MapProviderDynamic } from "@/context/MapContext";
 import { Map } from "@/components/Map";
 
 export default function Home() {
   return (
     <div>
-      <MapProvider>
+      <MapProviderDynamic>
         <Map />
-      </MapProvider>
+      </MapProviderDynamic>
     </div>
   );
 }
