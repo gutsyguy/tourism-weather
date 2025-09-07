@@ -1,0 +1,6 @@
+{
+    "build": "cd backend && bundle install",
+    "start": "cd backend && bin/rails server -b 0.0.0.0 -p $PORT",
+    "watch": "cd backend && bin/rails server -b 0.0.0.0 -p $PORT"
+  }
+  
