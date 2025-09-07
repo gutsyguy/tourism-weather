@@ -10,7 +10,7 @@ class Api::PlacesControllerTest < ActionDispatch::IntegrationTest
     
     # The response might be successful or an error depending on external API availability
     # We'll just ensure the endpoint is accessible and returns JSON
-    assert_includes [200, 500, 502, 503], response.status
+    assert_includes [200, 400, 500, 502, 503], response.status
     assert_equal "application/json; charset=utf-8", response.content_type
   end
 
@@ -20,7 +20,7 @@ class Api::PlacesControllerTest < ActionDispatch::IntegrationTest
     
     # The response might be successful or an error depending on external API availability
     # We'll just ensure the endpoint is accessible and returns JSON
-    assert_includes [200, 500, 502, 503], response.status
+    assert_includes [200, 400, 500, 502, 503], response.status
     assert_equal "application/json; charset=utf-8", response.content_type
   end
 

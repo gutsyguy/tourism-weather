@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+
+puts "Setting up environment variables for Weather Tourist App..."
+
+# Check if environment_variables.yml already exists
+if File.exist?('config/environment_variables.yml')
+  puts "⚠️  config/environment_variables.yml already exists!"
+  print "Do you want to overwrite it? (y/N): "
+  response = STDIN.gets.chomp.downcase
+  unless response == 'y' || response == 'yes'
+    puts "Setup cancelled."
+    exit 0
+  end
+end
+
+# Copy the example file
+if File.exist?('config/environment_variables.yml.example')
+  FileUtils.cp('config/environment_variables.yml.example', 'config/environment_variables.yml')
+  puts "✅ Created config/environment_variables.yml from example"
+else
+  puts "❌ config/environment_variables.yml.example not found!"
+  exit 1
+end
+
+puts "\n📝 Next steps:"
+puts "1. Edit config/environment_variables.yml and add your actual API keys"
+puts "2. Get a Google Places API key from: https://console.cloud.google.com/"
+puts "3. The Windborne API is publicly accessible (no key needed)"
+puts "\n🔒 Security reminder: Never commit your actual API keys to version control!"

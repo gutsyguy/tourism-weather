@@ -11,7 +11,7 @@ module Api
 
       request = Net::HTTP::Post.new(uri.request_uri)
       request["Content-Type"] = "application/json"
-      request["X-Goog-FieldMask"] = ENV["X_GOOG_FIELDMASK"] 
+      request["X-Goog-FieldMask"] = ENV["X_GOOG-FIELDMASK"] 
       request["X-Goog-Api-Key"] = ENV["GOOGLE_PLACES_API_KEY"] 
 
       text_query = params[:textQuery].presence || "Tourist attractions"
