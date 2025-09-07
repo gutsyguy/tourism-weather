@@ -20,6 +20,7 @@ const MapContext = createContext<MapContextType | undefined>(undefined);
 export const MapProvider = ({ children }: { children: ReactNode }) => {
   const [map, setMap] = useState<LeafletMap | null>(null);
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<LeafletMap | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -27,39 +28,54 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (!isClient || !mapRef.current || map) return;
+    if (!isClient || !mapRef.current || mapInstanceRef.current) return;
 
-    let newMap: LeafletMap | null = null;
+    let isMounted = true;
 
     const initMap = async () => {
-      const L = await import("leaflet");
-      
-      // Fix default icon paths for Vercel deployment
-      delete (L.Icon.Default.prototype as { _getIconUrl?: () => string })._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "/leaflet/marker-icon-2x.png",
-        iconUrl: "/leaflet/marker-icon.png",
-        shadowUrl: "/leaflet/marker-shadow.png",
-      });
+      try {
+        const L = await import("leaflet");
+        
+        // Fix default icon paths for Vercel deployment
+        delete (L.Icon.Default.prototype as { _getIconUrl?: () => string })._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+          iconUrl: "/leaflet/marker-icon.png",
+          shadowUrl: "/leaflet/marker-shadow.png",
+        });
 
-      newMap = L.map(mapRef.current!).setView([0, 0], 2);
+        // Small delay to ensure DOM is fully ready
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors",
-      }).addTo(newMap);
+        // Ensure the DOM element is still available
+        if (!mapRef.current || !isMounted) return;
 
-      setMap(newMap);
+        const newMap = L.map(mapRef.current).setView([0, 0], 2);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "&copy; OpenStreetMap contributors",
+        }).addTo(newMap);
+
+        if (isMounted) {
+          mapInstanceRef.current = newMap;
+          setMap(newMap);
+        }
+      } catch (error) {
+        console.error("Error initializing map:", error);
+      }
     };
 
     initMap();
 
     return () => {
-      if (newMap) {
-        newMap.remove();
+      isMounted = false;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
         setMap(null);
       }
     };
-  }, [isClient, map]);
+  }, [isClient]);
 
   if (!isClient) {
     return (

@@ -2,6 +2,7 @@
 
 import { useMap } from "@/context/MapContext";
 import { useEffect, useState } from "react";
+import type { Marker } from "leaflet";
 
 export const Map = () => {
   const { map } = useMap();
@@ -14,21 +15,33 @@ export const Map = () => {
   useEffect(() => {
     if (!isClient || !map) return;
 
-    const addMarker = async () => {
-      const L = await import("leaflet");
-      
-      const marker = L.marker([51.5, -0.09]).addTo(map);
-      marker.bindPopup("Hello Leaflet!").openPopup();
+    let marker: Marker | null = null;
+    let isMounted = true;
 
-      return () => {
-        map.removeLayer(marker);
-      };
+    const addMarker = async () => {
+      try {
+        const L = await import("leaflet");
+        
+        if (!isMounted || !map) return;
+        
+        marker = L.marker([51.5, -0.09]).addTo(map);
+        marker.bindPopup("Hello Leaflet!").openPopup();
+      } catch (error) {
+        console.error("Error adding marker:", error);
+      }
     };
 
-    const cleanup = addMarker();
+    addMarker();
 
     return () => {
-      cleanup.then(cleanupFn => cleanupFn?.());
+      isMounted = false;
+      if (marker && map) {
+        try {
+          map.removeLayer(marker);
+        } catch (error) {
+          console.error("Error removing marker:", error);
+        }
+      }
     };
   }, [map, isClient]);
 
