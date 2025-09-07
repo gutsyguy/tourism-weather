@@ -2,15 +2,12 @@
 import { MapProvider } from "@/context/MapContext";
 import { Map } from "@/components/Map";
 
-export const Home = () => {
+export default function Home() {
   return (
     <div>
-
-    <MapProvider>
-      <Map />
-    </MapProvider>
+      <MapProvider>
+        <Map />
+      </MapProvider>
     </div>
   );
-};
-
-export default Home;
+}
