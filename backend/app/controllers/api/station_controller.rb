@@ -4,7 +4,7 @@ require 'json'
 module Api
     class StationController < ApplicationController
       def station
-        uri = URI("https://sfc.windbornesystems.com/stations")
+        uri = URI("#{ENV["WINDBORNE_API"]}/stations")
         response = Net::HTTP.get_response(uri)
   
         if response.is_a?(Net::HTTPSuccess)

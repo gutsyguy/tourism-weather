@@ -10,7 +10,7 @@ module Api
         return render json: { error: "Station parameter is required" }, status: :bad_request
       end
 
-      uri = URI("https://sfc.windbornesystems.com/historical_weather?station=#{station_id}")
+      uri = URI("#{ENV["WINDBORNE_API"]}/historical_weather?station=#{station_id}")
       response = Net::HTTP.get_response(uri)
 
       if response.is_a?(Net::HTTPSuccess)

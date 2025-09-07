@@ -11,6 +11,13 @@ Rails.application.routes.draw do
 
   get 'api/stations/:station/weather', action: :weatherObservation, controller: 'api/weather_observation'
 
+  post 'api/places/place', action: :place, controller: 'api/places'
+
+  namespace :api do
+    get "places", to: "places#place"
+  end
+  
+
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
