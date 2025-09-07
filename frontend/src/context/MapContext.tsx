@@ -16,8 +16,11 @@ import L from "leaflet";
 interface MapContextType {
   map: LeafletMap | null;
 }
+interface IconDefaultWithPrivate extends L.Icon.Default {
+    _getIconUrl?: () => string;
+  }
 // Fix default icon paths
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as IconDefaultWithPrivate)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "/leaflet/marker-icon-2x.png",
