@@ -79,12 +79,21 @@ jobs:
       - name: Run frontend tests
         working-directory: frontend
         run: npm test --if-present
-
+        
   deploy-backend:
-    needs: [backend] # run only if backend tests pass
+    needs: [backend]
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render Deployment
-        run: curl "$RENDER_DEPLOY_HOOK_URL"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: curl -sSL https://railway.app/install.sh | sh
+
+      - name: Deploy to Railway
         env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway login --apiKey $RAILWAY_TOKEN
+          cd backend
+          railway up --detach
