@@ -94,6 +94,6 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway login --apiKey $RAILWAY_TOKEN
+          railway login
           cd backend
           railway up --detach
