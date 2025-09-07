@@ -1,4 +1,5 @@
 require "test_helper"
+require "ostruct"   # ← add this
 
 class Api::WeatherObservationControllerTest < ActionDispatch::IntegrationTest
   test "returns valid points and filters corrupted ones" do
@@ -12,7 +13,12 @@ class Api::WeatherObservationControllerTest < ActionDispatch::IntegrationTest
       "end_date" => "2025-09-05T22:59:17.335225"
     }
 
-    Net::HTTP.stub :get_response, OpenStruct.new(is_a?: true, body: mock_data.to_json) do
+    fake_response = OpenStruct.new(
+      is_a?: Net::HTTPSuccess, # better than just `true`
+      body: mock_data.to_json
+    )
+
+    Net::HTTP.stub :get_response, fake_response do
       get "/api/stations/EHAK/weather"
 
       assert_response :success
