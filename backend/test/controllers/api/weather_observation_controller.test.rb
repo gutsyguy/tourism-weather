@@ -18,7 +18,7 @@ class Api::WeatherObservationControllerTest < ActionDispatch::IntegrationTest
       body: mock_data.to_json
     )
 
-    Net::HTTP.singleton_class.stub :get_response, fake_response do
+    Net::HTTP.stub :get_response, fake_response do
       get "/api/stations/EHAK/weather"
 
       assert_response :success
