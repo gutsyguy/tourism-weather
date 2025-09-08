@@ -8,18 +8,23 @@ import {
   ReactNode,
   useRef,
 } from "react";
-import type { Map as LeafletMap } from "leaflet";
+import { Loader } from "@googlemaps/js-api-loader";
 import dynamic from "next/dynamic";
 
 interface MapContextType {
-  map: LeafletMap | null;
+  map: google.maps.Map | null;
+  isLoaded: boolean;
+  error: string | null;
 }
 
 const MapContext = createContext<MapContextType | undefined>(undefined);
 
 export const MapProvider = ({ children }: { children: ReactNode }) => {
-  const [map, setMap] = useState<LeafletMap | null>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -27,58 +32,114 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (!isClient || !mapRef.current || map) return;
+    if (!isClient || !mapRef.current || mapInstanceRef.current) return;
 
-    let newMap: LeafletMap | null = null;
+    let isMounted = true;
 
     const initMap = async () => {
-      const L = await import("leaflet");
-      
-      // Fix default icon paths for Vercel deployment
-      delete (L.Icon.Default.prototype as { _getIconUrl?: () => string })._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "/leaflet/marker-icon-2x.png",
-        iconUrl: "/leaflet/marker-icon.png",
-        shadowUrl: "/leaflet/marker-shadow.png",
-      });
+      try {
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        
+        if (!apiKey) {
+          console.warn("Google Maps API key is missing");
+          setError("Google Maps API key is missing");
+          setIsLoaded(false);
+          return;
+        }
+        
 
-      newMap = L.map(mapRef.current!).setView([0, 0], 2);
+        const loader = new Loader({
+          apiKey: apiKey,
+          version: "weekly",
+          libraries: ["places", "geometry"],
+        });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors",
-      }).addTo(newMap);
+        const google = await loader.load();
 
-      setMap(newMap);
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        if (!mapRef.current || !isMounted) return;
+
+        const newMap = new google.maps.Map(mapRef.current, {
+          center: { lat: 0, lng: 0 },
+          zoom: 2,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          disableDefaultUI: false,
+          zoomControl: true,
+          mapTypeControl: true,
+          scaleControl: true,
+          streetViewControl: true,
+          rotateControl: true,
+          fullscreenControl: true,
+        });
+
+        if (isMounted) {
+          mapInstanceRef.current = newMap;
+          setMap(newMap);
+          setIsLoaded(true);
+          setError(null);
+        }
+      } catch (error) {
+        console.error("Error initializing Google Maps:", error);
+        if (isMounted) {
+          setError(error instanceof Error ? error.message : "Failed to load Google Maps");
+          setIsLoaded(false);
+        }
+      }
     };
 
     initMap();
 
     return () => {
-      if (newMap) {
-        newMap.remove();
+      isMounted = false;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current = null;
         setMap(null);
+        setIsLoaded(false);
       }
     };
-  }, [isClient, map]);
+  }, [isClient]);
 
   if (!isClient) {
     return (
-      <MapContext.Provider value={{ map: null }}>
+      <MapContext.Provider value={{ map: null, isLoaded: false, error: null }}>
         <div style={{ height: "100vh", width: "100%" }} />
         {children}
       </MapContext.Provider>
     );
   }
 
+  if (error) {
+    return (
+      <MapContext.Provider value={{ map: null, isLoaded: false, error }}>
+        <div 
+          style={{ 
+            height: "100vh", 
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            backgroundColor: "#f0f0f0",
+            color: "#666"
+          }}
+        >
+          <h2>Map Error</h2>
+          <p>{error}</p>
+        </div>
+        {children}
+      </MapContext.Provider>
+    );
+  }
+
   return (
-    <MapContext.Provider value={{ map }}>
+    <MapContext.Provider value={{ map, isLoaded, error }}>
       <div ref={mapRef} style={{ height: "100vh", width: "100%" }} />
       {children}
     </MapContext.Provider>
   );
 };
 
-// Dynamic client-only provider for SSR
 export const MapProviderDynamic = dynamic(
   () => import("@/context/MapContext").then((mod) => mod.MapProvider),
   { ssr: false }
