@@ -96,4 +96,4 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           cd backend
-          railway up --detach
+          railway up --service tourism-weather --detach
