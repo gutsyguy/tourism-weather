@@ -2,6 +2,7 @@ import { Station, StationData } from "@/types/station";
 import { Anomaly, AnomalyType, WeatherPoint } from "@/types/weather";
 import moment from "moment-timezone";
 import { useEffect, useState } from "react";
+import WeatherTrendChart from "./Chart";
 
 const Modal = ({
   stationData,
@@ -19,6 +20,7 @@ const Modal = ({
   country: string;
 }) => {
   const [places, setPlaces] = useState<PlacesResponse | null>(null);
+  const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const temperature =
     stationData.points[stationData.points.length - 1].temperature;
 
@@ -149,16 +151,11 @@ const Modal = ({
         seenTypes.add("Precipitation");
       }
 
-      // Stop early if all types have been found
       if (seenTypes.size === 4) break;
     }
 
     return anomalies;
   }
-
-  //   const anomolies = detectAnomalies(stationData.points);
-
-  const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
 
   useEffect(() => {
     if (!stationData?.points?.length) return;
@@ -168,15 +165,11 @@ const Modal = ({
   }, [stationData]);
 
   return (
-    <div
-      style={{
-        boxShadow: "0 0 10px rgba(0,0,0,0.3)",
-      }}
-      className=" absolute top-0 right-0 w-[27rem] h-[100vh] bg-white p-4 z-[999]"
-    >
-      <div className="flex flex-row justify-between">
+    <div className="absolute top-0 right-0 w-[33rem] h-[100vh] bg-white z-[999] shadow-lg flex flex-col">
+      {/* Header */}
+      <div className="flex flex-row justify-between p-4 border-b">
         <div>
-          <h1 className=" font-semibold text-2xl">{city}</h1>
+          <h1 className="font-semibold text-2xl">{city}</h1>
           <h2>
             {state}, {country}
           </h2>
@@ -188,32 +181,49 @@ const Modal = ({
           <h2>{currentTime}</h2>
         </div>
       </div>
-      <hr />
-      <p>Humidity: {humidityLevel}</p>
-      <p>
-        Wind: {wind.speed} m/s, {wind.direction}
-      </p>
-      <p>Station Name: {station.station_name}</p>
-      <p>Network: {station.station_network}</p>
-      <p>Timezone: {station.timezone}</p>
-      <div>
-        {anomalies.map((anomoly, index) => (
-          <div key={index}>
-            <strong>{anomoly.description}:</strong>
-          </div>
+
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        <p>Humidity: {humidityLevel}</p>
+        <p>
+          Wind: {wind.speed} m/s, {wind.direction}
+        </p>
+        <p>Station Name: {station.station_name}</p>
+        <p>Network: {station.station_network}</p>
+        <p>Timezone: {station.timezone}</p>
+
+        <div>
+          {anomalies.map((anomoly, index) => (
+            <div key={index}>
+              <strong>{anomoly.description}</strong>
+            </div>
+          ))}
+        </div>
+
+        <hr />
+
+        <WeatherTrendChart
+          stationData={stationData}
+          timezone={stationData.points[stationData.points.length - 1].timestamp}
+        />
+
+        <hr />
+
+        <h2>Tourist Activities</h2>
+        {places?.data.places.map((place, index) => (
+          <li key={index}>{place.displayName.text}</li>
         ))}
       </div>
-      <hr />
-      <h2>Tourist Acitivities</h2>
-      {places?.data.places.map((place, index) => (
-        <li key={index}>{place.displayName.text}</li>
-      ))}
-      <button
-        className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        onClick={() => setStation(null)}
-      >
-        Close
-      </button>
+
+      {/* Close button fixed at bottom */}
+      <div className="p-4 border-t flex justify-center">
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          onClick={() => setStation(null)}
+        >
+          Close
+        </button>
+      </div>
     </div>
   );
 };

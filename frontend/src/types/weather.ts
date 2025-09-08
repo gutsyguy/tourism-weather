@@ -8,7 +8,6 @@ export interface WeatherPoint {
   precip: number;
 }
 
-
 export type AnomalyType = "Heat" | "Cold" | "High Wind" | "Precipitation";
 
 export interface Anomaly {
