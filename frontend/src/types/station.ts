@@ -11,7 +11,7 @@ export const zStation = z.object({
 });
 
 export interface Station {
-  station: string;
+  station_id: string;
   latitude: number;
   longitude: number;
   elevation: number;
@@ -20,8 +20,22 @@ export interface Station {
   timezone: string;
 }
 
-
 export interface Stations {
   data: Station[];
   corrupted_records: number;
+}
+
+export interface Point {
+  timestamp: string; // e.g., "2025-08-29 23:25"
+  temperature: number;
+  wind_x: number;
+  wind_y: number;
+  dewpoint: number;
+  pressure: number | null; // can be null
+  precip: number;
+}
+
+export interface StationData {
+  station: string; // e.g., "EHAK"
+  points: Point[];
 }
