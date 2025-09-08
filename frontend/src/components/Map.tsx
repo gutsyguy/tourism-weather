@@ -60,7 +60,6 @@ export const Map = () => {
     if (!isClient || !map || !isLoaded || loading || !stations?.data.length)
       return;
 
-    // Clear existing markers
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
 
@@ -71,7 +70,6 @@ export const Map = () => {
         title: station.station_name || "Station",
       });
 
-      // Open React modal instead of InfoWindow
       marker.addListener("click", () => setSelectedStation(station));
 
       return marker;
@@ -107,7 +105,7 @@ export const Map = () => {
           const state = components.find(
             (c: { long_name: string; short_name: string; types: string[] }) =>
               c.types.includes("administrative_area_level_1")
-          )?.short_name; // or long_name if you prefer full state name
+          )?.long_name; // or long_name if you prefer full state name
 
           const country = components.find(
             (c: { long_name: string; short_name: string; types: string[] }) =>
