@@ -1,4 +1,3 @@
-// context/StationsContext.tsx
 "use client";
 import {
   createContext,
@@ -25,21 +24,33 @@ export const StationsProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (stations) return; // already fetched
     const url = process.env.NEXT_PUBLIC_API_URL;
+    let retryTimeout: NodeJS.Timeout;
+
     const fetchStations = async () => {
       try {
         const res = await fetch(`${url}/api/station`);
         if (!res.ok) throw new Error(`Response status: ${res.status}`);
-        const result = await res.json();
+
+        const result: Stations = await res.json();
+
+        if (!result || Object.keys(result).length === 0) {
+          throw new Error("Stations data is empty or corrupted");
+        }
+
         setStations(result);
+        setError(null);
       } catch (err) {
         setError((err as Error).message);
+        retryTimeout = setTimeout(fetchStations, 2000);
       } finally {
         setLoading(false);
       }
     };
-    fetchStations();
+
+    if (!stations) fetchStations();
+
+    return () => clearTimeout(retryTimeout);
   }, [stations]);
 
   return (
