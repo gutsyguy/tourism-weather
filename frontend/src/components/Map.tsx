@@ -1,8 +1,9 @@
+// Map.tsx
 "use client";
 
 import { useMap } from "@/context/MapContext";
 import { useStations } from "@/context/StationsContext";
-import { Station, StationData, Stations } from "@/types/station";
+import { Station, Stations } from "@/types/station";
 import { useEffect, useState, useRef, useMemo } from "react";
 import Modal from "./Modal";
 
@@ -11,11 +12,10 @@ export const Map = () => {
   const { stations, loading } = useStations();
   const [isClient, setIsClient] = useState(false);
   const markersRef = useRef<google.maps.Marker[]>([]);
-  const [selectedStation, setSelectedStation] = useState<Station | null>(null); // <-- Selected station
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [city, setCity] = useState<string>("");
   const [state, setState] = useState<string>("");
   const [country, setCountry] = useState<string>("");
-  const [data, setData] = useState<StationData | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -105,16 +105,16 @@ export const Map = () => {
           const state = components.find(
             (c: { long_name: string; short_name: string; types: string[] }) =>
               c.types.includes("administrative_area_level_1")
-          )?.long_name; // or long_name if you prefer full state name
+          )?.long_name;
 
           const country = components.find(
             (c: { long_name: string; short_name: string; types: string[] }) =>
               c.types.includes("country")
           )?.long_name;
 
-          setCity(city);
-          setState(state);
-          setCountry(country);
+          setCity(city || "");
+          setState(state || "");
+          setCountry(country || "");
         }
       } catch (err) {
         console.error("Reverse geocoding error:", err);
@@ -126,74 +126,31 @@ export const Map = () => {
     }
   }, [selectedStation]);
 
-  useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_API_URL;
-    if (!url) return;
-    if (!selectedStation) return;
-    const fetchStationData = async () => {
-      try {
-        const res = await fetch(
-          `${url}/api/stations/${selectedStation.station_id}/weather`
-        );
-        if (!res.ok) throw new Error(`Response status: ${res.status}`);
-        const result = await res.json();
-        setData(result);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchStationData();
-  }, [selectedStation]);
-
   if (!isClient)
     return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <div className="flex items-center justify-center h-screen w-full">
         Loading map...
       </div>
     );
+
   if (error)
     return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-        }}
-      >
+      <div className="flex items-center justify-center h-screen w-full flex-col">
         Map Error: {error}
       </div>
     );
+
   if (!isLoaded)
     return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <div className="flex items-center justify-center h-screen w-full">
         Loading Google Maps...
       </div>
     );
 
   return (
     <>
-      {selectedStation && setSelectedStation && data && (
+      {selectedStation && (
         <Modal
-          stationData={data}
           station={selectedStation}
           setStation={setSelectedStation}
           city={city}
