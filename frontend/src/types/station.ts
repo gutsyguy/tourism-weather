@@ -12,13 +12,14 @@ export const zStation = z.object({
 
 export interface Station {
   station: string;
-  latitude: Float16Array;
-  longitude: Float16Array;
-  elevation: Float16Array;
+  latitude: number;
+  longitude: number;
+  elevation: number;
   station_name: string;
   station_network: string;
   timezone: string;
 }
+
 
 export interface Stations {
   data: Station[];

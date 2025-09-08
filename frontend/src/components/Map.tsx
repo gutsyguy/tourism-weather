@@ -1,49 +1,85 @@
 "use client";
 
 import { useMap } from "@/context/MapContext";
-import { useEffect, useState } from "react";
-import type { Marker } from "leaflet";
+import { useStations } from "@/context/StationsContext";
+import { Station, Stations } from "@/types/station";
+import { Loader } from "@googlemaps/js-api-loader";
+import { useEffect, useState, useRef } from "react";
 
 export const Map = () => {
-  const { map } = useMap();
+  const { map, isLoaded, error } = useMap();
+  const { stations, loading } = useStations();
   const [isClient, setIsClient] = useState(false);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  
+
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  const getStationsInViewport = (
+    stations: Stations["data"],
+    map: google.maps.Map,
+    maxPerCell = 1,
+    gridSize = 20 
+  ): Station[] => {
+    if (!map) return [];
+  
+    const bounds = map.getBounds();
+    if (!bounds) return [];
+  
+    const grid: Record<string, Station[]> = {};
+  
+    stations.forEach((s) => {
+      const { latitude, longitude } = s;
+  
+      if (typeof latitude !== "number" || typeof longitude !== "number") return;
+  
+      const latLng = new google.maps.LatLng(latitude, longitude);
+  
+      if (!bounds.contains(latLng)) return;
+  
+      // Assign to a larger grid cell
+      const key = `${Math.floor(latitude / gridSize)}_${Math.floor(longitude / gridSize)}`;
+      if (!grid[key]) grid[key] = [];
+      if (grid[key].length < maxPerCell) grid[key].push(s);
+    });
+  
+    return Object.values(grid).flat();
+  };
+  
   useEffect(() => {
-    if (!isClient || !map) return;
+    if (!isClient || !map || !isLoaded || loading || !stations?.data.length) return;
 
-    let marker: Marker | null = null;
-    let isMounted = true;
+    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current = [];
 
-    const addMarker = async () => {
-      try {
-        const L = await import("leaflet");
-        
-        if (!isMounted || !map) return;
-        
-        marker = L.marker([51.5, -0.09]).addTo(map);
-        marker.bindPopup("Hello Leaflet!").openPopup();
-      } catch (error) {
-        console.error("Error adding marker:", error);
-      }
-    };
+    const visibleStations = getStationsInViewport(stations.data, map, 4);
 
-    addMarker();
+    const newMarkers = visibleStations.map((station) => {
+      const marker = new google.maps.Marker({
+        position: { lat: station.latitude, lng: station.longitude },
+        map,
+        title: station.station_name || "Station",
+      });
+
+      const infoWindow = new google.maps.InfoWindow({
+        content: `<h3>${station.station_name}</h3><p>${station.station_network || ""}</p>`,
+      });
+
+      marker.addListener("click", () => infoWindow.open(map, marker));
+      return marker;
+    });
+
+    markersRef.current = newMarkers;
 
     return () => {
-      isMounted = false;
-      if (marker && map) {
-        try {
-          map.removeLayer(marker);
-        } catch (error) {
-          console.error("Error removing marker:", error);
-        }
-      }
+      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current = [];
     };
-  }, [map, isClient]);
+  }, [map, isLoaded, isClient, stations, loading]);
+  
 
   if (!isClient) {
     return (
@@ -64,5 +100,46 @@ export const Map = () => {
     );
   }
 
-  return null; // Map is rendered by MapContext
+  if (error) {
+    return (
+      <div 
+        style={{ 
+          height: "100vh", 
+          width: "100%",
+          position: "relative",
+          zIndex: 1,
+          backgroundColor: "#f0f0f0",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          color: "#666"
+        }}
+      >
+        <h2>Map Error</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div 
+        style={{ 
+          height: "100vh", 
+          width: "100%",
+          position: "relative",
+          zIndex: 1,
+          backgroundColor: "#f0f0f0",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
+      >
+        Loading Google Maps...
+      </div>
+    );
+  }
+
+  return null;
 };
