@@ -22,8 +22,8 @@ const Searchbar = ({
           <div>
             <h2>Search Results:</h2>
             {filteredSearch.map((item, index) => (
-              <div>
-                <h3 key={index}>{item}</h3>
+              <div key={index}>
+                <h3>{item}</h3>
               </div>
             ))}
           </div>
