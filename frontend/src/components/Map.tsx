@@ -22,7 +22,7 @@ export const Map = () => {
     stations: Stations["data"],
     map: google.maps.Map,
     maxPerCell = 1,
-    gridSize = 20 
+    gridSize = 15 
   ): Station[] => {
     if (!map) return [];
   
