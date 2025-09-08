@@ -1,21 +1,22 @@
+// Map.tsx
 "use client";
 
 import { useMap } from "@/context/MapContext";
 import { useStations } from "@/context/StationsContext";
-import { Station, StationData, Stations } from "@/types/station";
+import { Station, Stations } from "@/types/station";
 import { useEffect, useState, useRef, useMemo } from "react";
 import Modal from "./Modal";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 export const Map = () => {
   const { map, isLoaded, error } = useMap();
-  const { stations, loading } = useStations();
+  const { stations, loading, retryCount } = useStations();
   const [isClient, setIsClient] = useState(false);
   const markersRef = useRef<google.maps.Marker[]>([]);
-  const [selectedStation, setSelectedStation] = useState<Station | null>(null); // <-- Selected station
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [city, setCity] = useState<string>("");
   const [state, setState] = useState<string>("");
   const [country, setCountry] = useState<string>("");
-  const [data, setData] = useState<StationData | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -60,7 +61,6 @@ export const Map = () => {
     if (!isClient || !map || !isLoaded || loading || !stations?.data.length)
       return;
 
-    // Clear existing markers
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
 
@@ -71,7 +71,6 @@ export const Map = () => {
         title: station.station_name || "Station",
       });
 
-      // Open React modal instead of InfoWindow
       marker.addListener("click", () => setSelectedStation(station));
 
       return marker;
@@ -107,20 +106,16 @@ export const Map = () => {
           const state = components.find(
             (c: { long_name: string; short_name: string; types: string[] }) =>
               c.types.includes("administrative_area_level_1")
-          )?.short_name; // or long_name if you prefer full state name
+          )?.long_name;
 
           const country = components.find(
             (c: { long_name: string; short_name: string; types: string[] }) =>
               c.types.includes("country")
           )?.long_name;
 
-          console.log("City:", city);
-          console.log("State:", state);
-          console.log("Country:", country);
-
-          setCity(city);
-          setState(state);
-          setCountry(country);
+          setCity(city || "");
+          setState(state || "");
+          setCountry(country || "");
         }
       } catch (err) {
         console.error("Reverse geocoding error:", err);
@@ -132,75 +127,41 @@ export const Map = () => {
     }
   }, [selectedStation]);
 
-  useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_API_URL;
-    if (!url) return;
-    if (!selectedStation) return;
-    const fetchStationData = async () => {
-      try {
-        const res = await fetch(
-          `${url}/api/stations/${selectedStation.station_id}/weather`
-        );
-        if (!res.ok) throw new Error(`Response status: ${res.status}`);
-        const result = await res.json();
-        console.log(result);
-        setData(result);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchStationData();
-  }, [selectedStation]);
-
   if (!isClient)
     return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <div className="flex items-center justify-center h-screen w-full">
         Loading map...
       </div>
     );
+
   if (error)
     return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-        }}
-      >
+      <div className="flex items-center justify-center h-screen w-full flex-col">
         Map Error: {error}
       </div>
     );
+
   if (!isLoaded)
     return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <div className="flex items-center justify-center h-screen w-full">
         Loading Google Maps...
       </div>
     );
 
+  // Show loading spinner when stations are being fetched
+  if (loading && !stations)
+    return (
+      <LoadingSpinner 
+        message="Loading weather stations..." 
+        retryCount={retryCount}
+        maxRetries={5}
+      />
+    );
+
   return (
     <>
-      {selectedStation && setSelectedStation && data && (
+      {selectedStation && (
         <Modal
-          stationData={data}
           station={selectedStation}
           setStation={setSelectedStation}
           city={city}

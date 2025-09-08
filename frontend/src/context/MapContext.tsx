@@ -134,7 +134,7 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <MapContext.Provider value={{ map, isLoaded, error }}>
-      <div ref={mapRef} style={{ height: "100vh", width: "100%" }} />
+      <div ref={mapRef} style={{ height: "95vh", width: "100%" }} />
       {children}
     </MapContext.Provider>
   );
