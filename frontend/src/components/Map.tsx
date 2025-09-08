@@ -6,10 +6,11 @@ import { useStations } from "@/context/StationsContext";
 import { Station, Stations } from "@/types/station";
 import { useEffect, useState, useRef, useMemo } from "react";
 import Modal from "./Modal";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 export const Map = () => {
   const { map, isLoaded, error } = useMap();
-  const { stations, loading } = useStations();
+  const { stations, loading, retryCount } = useStations();
   const [isClient, setIsClient] = useState(false);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
@@ -145,6 +146,16 @@ export const Map = () => {
       <div className="flex items-center justify-center h-screen w-full">
         Loading Google Maps...
       </div>
+    );
+
+  // Show loading spinner when stations are being fetched
+  if (loading && !stations)
+    return (
+      <LoadingSpinner 
+        message="Loading weather stations..." 
+        retryCount={retryCount}
+        maxRetries={5}
+      />
     );
 
   return (
