@@ -92,7 +92,7 @@ const Modal = ({
   const lastPoint = stationData.points[stationData.points.length - 1];
   const temperature = lastPoint.temperature;
   const dew = lastPoint.dewpoint;
-  const timezone = lastPoint.timestamp;
+  const timezone = station.timezone;
   const currentTime = moment().tz(timezone).format("HH:mm");
 
   const tempDescription =

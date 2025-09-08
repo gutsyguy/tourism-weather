@@ -12,6 +12,7 @@ interface StationsContextType {
   stations: Stations | null;
   loading: boolean;
   error: string | null;
+  retryCount: number;
 }
 
 const StationsContext = createContext<StationsContextType | undefined>(
@@ -22,6 +23,9 @@ export const StationsProvider = ({ children }: { children: ReactNode }) => {
   const [stations, setStations] = useState<Stations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const MAX_RETRIES = 5;
 
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_API_URL;
@@ -40,9 +44,22 @@ export const StationsProvider = ({ children }: { children: ReactNode }) => {
 
         setStations(result);
         setError(null);
+        setRetryCount(0); // Reset retry count on success
       } catch (err) {
+        const newRetryCount = retryCount + 1;
+        setRetryCount(newRetryCount);
         setError((err as Error).message);
-        retryTimeout = setTimeout(fetchStations, 2000);
+        
+        if (newRetryCount >= MAX_RETRIES) {
+          // Auto-reload the page after 5 failed attempts
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          // Continue retrying with exponential backoff
+          const delay = Math.min(2000 * Math.pow(2, newRetryCount - 1), 10000);
+          retryTimeout = setTimeout(fetchStations, delay);
+        }
       } finally {
         setLoading(false);
       }
@@ -51,10 +68,10 @@ export const StationsProvider = ({ children }: { children: ReactNode }) => {
     if (!stations) fetchStations();
 
     return () => clearTimeout(retryTimeout);
-  }, [stations]);
+  }, [stations, retryCount]);
 
   return (
-    <StationsContext.Provider value={{ stations, loading, error }}>
+    <StationsContext.Provider value={{ stations, loading, error, retryCount }}>
       {children}
     </StationsContext.Provider>
   );
