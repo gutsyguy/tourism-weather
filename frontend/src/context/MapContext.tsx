@@ -41,8 +41,12 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
         const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
         
         if (!apiKey) {
-          throw new Error("Google Maps API key is not configured. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in your environment variables.");
+          console.warn("Google Maps API key is missing");
+          setError("Google Maps API key is missing");
+          setIsLoaded(false);
+          return;
         }
+        
 
         const loader = new Loader({
           apiKey: apiKey,

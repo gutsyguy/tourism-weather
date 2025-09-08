@@ -4,14 +4,14 @@ import { useMap } from "@/context/MapContext";
 import { useStations } from "@/context/StationsContext";
 import { Station, Stations } from "@/types/station";
 import { Loader } from "@googlemaps/js-api-loader";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 
 export const Map = () => {
   const { map, isLoaded, error } = useMap();
   const { stations, loading } = useStations();
   const [isClient, setIsClient] = useState(false);
   const markersRef = useRef<google.maps.Marker[]>([]);
-  
+ 
 
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export const Map = () => {
   const getStationsInViewport = (
     stations: Stations["data"],
     map: google.maps.Map,
-    maxPerCell = 1,
+    maxPerCell = 3,
     gridSize = 15 
   ): Station[] => {
     if (!map) return [];
@@ -48,6 +48,13 @@ export const Map = () => {
   
     return Object.values(grid).flat();
   };
+
+   
+  const visibleStations = useMemo(() => {
+    if (!map || !stations?.data?.length) return [];
+    return getStationsInViewport(stations.data, map, 4);
+  }, [stations?.data, map]);
+  
   
   useEffect(() => {
     if (!isClient || !map || !isLoaded || loading || !stations?.data.length) return;
@@ -55,7 +62,6 @@ export const Map = () => {
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
 
-    const visibleStations = getStationsInViewport(stations.data, map, 4);
 
     const newMarkers = visibleStations.map((station) => {
       const marker = new google.maps.Marker({
