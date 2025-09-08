@@ -112,10 +112,6 @@ export const Map = () => {
               c.types.includes("country")
           )?.long_name;
 
-          console.log("City:", city);
-          console.log("State:", state);
-          console.log("Country:", country);
-
           setCity(city);
           setState(state);
           setCountry(country);
@@ -141,7 +137,6 @@ export const Map = () => {
         );
         if (!res.ok) throw new Error(`Response status: ${res.status}`);
         const result = await res.json();
-        console.log(result);
         setData(result);
       } catch (err) {
         console.error(err);
