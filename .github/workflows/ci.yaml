@@ -80,20 +80,19 @@ jobs:
         working-directory: frontend
         run: npm test --if-present
         
-  deploy-backend:
-    needs: [backend]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+deploy-backend:
+  needs: [backend]
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Install Railway CLI
-        run: curl -sSL https://railway.app/install.sh | sh
+    - name: Install Railway CLI
+      run: curl -sSL https://railway.app/install.sh | sh
 
-      - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          railway login
-          cd backend
-          railway up --detach
+    - name: Deploy to Railway
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      run: |
+        cd backend
+        railway up --detach
