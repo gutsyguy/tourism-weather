@@ -1,6 +1,6 @@
-## WindBorne Weather Insights — Take‑Home Submission
+## Weather Insights
 
-An end-to-end web app that explores ASOS historical weather observations via an interactive map and timeline, built to demonstrate full‑stack product skills aligned with WindBorne’s mission.
+An end-to-end web app that explores ASOS historical weather observations via an interactive map and timeline, built to demonstrate full‑stack product skills.
 
 - Live demo: tourism-weather.vercel.app
 
